@@ -9,7 +9,7 @@ namespace FamilyTree
     class SqlDatabase
     {
         public string ConnectionString { get; set; } = @"Data Source = .\SQLExpress; Integrated Security = true; database = {0}";
-        public string DatabaseName { get; set; }
+        public string DatabaseName { get; set; } = "FamilyTree";
 
         public bool CreateDatabase()
         {
@@ -22,7 +22,7 @@ namespace FamilyTree
             }
             catch
             {
-                DatabaseName = "FamilyTree";
+                //DatabaseName = "FamilyTree";
                 return false;
             }
         }
@@ -55,6 +55,19 @@ namespace FamilyTree
                     command.ExecuteNonQuery();
                 }
             }
+        }
+
+        internal void CreatePerson(Person person)
+        {
+            var sql = "INSERT Family (first_name, last_name, date_of_birth) " +
+                "VALUES (@fName, @lName, @dob)";
+            var parameters = new (string, string)[]
+            {
+                ("@fName", person.FirstName),
+                ("@lName", person.LastName),
+                ("@dob", person.DateOfBirth.ToString())
+            };
+            ExecuteSql(sql, parameters);
         }
     }
 }
