@@ -8,11 +8,9 @@ namespace FamilyTree
         {
             var p = new Program();
             p.Setup();
-            p.AddPerson();
+            var person = p.AddPerson();
+            p.SetParents(person);
         }
-
-        //public SqlDatabase Database { get; set; } = new SqlDatabase();
-        //public Person person { get; set; } = new Person();
 
         public void Setup()
         {
@@ -30,25 +28,35 @@ namespace FamilyTree
             }
         }
 
-        public void AddPerson()
+        public Person AddPerson()
         {
             var person = new Person();
             Console.Write("Enter first name: ");
             person.FirstName = Console.ReadLine();
             Console.Write("Enter last name: ");
             person.LastName = Console.ReadLine();
-            Console.Write("Enter date of birth: ");
+            Console.Write("Enter date of birth(yyyy-mm-dd): ");
             person.DateOfBirth = Convert.ToDateTime(Console.ReadLine());
             var db = new SqlDatabase();
             db.AddPerson(person);
+            person.Id = db.GetLastAddedId();
+            return person;
         }
 
-        public void AddParents(Person person)
+        public void SetParents(Person person)
         {
-            // Hitta mamma och pappa och lägg till deras id till 
-            // person.MotherId och person.FatherId
-
-
+            var db = new SqlDatabase();
+            var mother = db.GetParent("mother");
+            if (mother != null)
+            {
+                person.MotherId = mother.Id;
+            }
+            var father = db.GetParent("father");
+            if (father != null)
+            {
+                person.FatherId = father.Id;
+            }
+            db.UpdatePerson(person);
         }
     }
 }

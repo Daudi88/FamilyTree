@@ -6,12 +6,12 @@ namespace FamilyTree
 {
     class Person
     {
-        public int Id { get; set; }
+        public int Id { get; set; } = 0;
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public DateTime? DateOfBirth { get; set; }
-        public DateTime? DateOfdeath { get; set; }
-        public int? MotherId { get; set; }
-        public int? FatherId { get; set; }
+        public DateTime? DateOfBirth { get; set; } = null;
+        public DateTime? DateOfDeath { get; set; } = null;
+        public int? MotherId { get; set; } = null;
+        public int? FatherId { get; set; } = null;
     }
 }
