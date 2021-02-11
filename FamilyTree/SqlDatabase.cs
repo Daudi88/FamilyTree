@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Text;
 using System.Threading;
@@ -57,7 +58,7 @@ namespace FamilyTree
             }
         }
 
-        internal void CreatePerson(Person person)
+        internal void AddPerson(Person person)
         {
             var sql = "INSERT Family (first_name, last_name, date_of_birth) " +
                 "VALUES (@fName, @lName, @dob)";
@@ -68,6 +69,29 @@ namespace FamilyTree
                 ("@dob", person.DateOfBirth.ToString())
             };
             ExecuteSql(sql, parameters);
+        }
+
+        private DataTable GetDataTable(string sql, params (string, string)[] parameters)
+        {
+            var dt = new DataTable();
+            var connectionString = string.Format(ConnectionString, DatabaseName);
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SqlCommand(sql, connection))
+                {
+                    foreach (var parameter in parameters)
+                    {
+                        command.Parameters.AddWithValue(parameter.Item1, parameter.Item2);
+                    }
+
+                    using (var adapter = new SqlDataAdapter(command))
+                    {
+                        adapter.Fill(dt);
+                    }
+                }
+            }
+            return dt;
         }
     }
 }

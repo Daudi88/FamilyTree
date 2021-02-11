@@ -40,7 +40,15 @@ namespace FamilyTree
             Console.Write("Enter date of birth: ");
             person.DateOfBirth = Convert.ToDateTime(Console.ReadLine());
             var db = new SqlDatabase();
-            db.CreatePerson(person);
+            db.AddPerson(person);
+        }
+
+        public void AddParents(Person person)
+        {
+            // Hitta mamma och pappa och lägg till deras id till 
+            // person.MotherId och person.FatherId
+
+
         }
     }
 }
