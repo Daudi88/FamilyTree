@@ -253,7 +253,7 @@ namespace FamilyTree
             return person;
         }
 
-        public void AddPerson(Person person)
+        public void Insert(Person person)
         {
             var sql = "INSERT Family (first_name, last_name, date_of_birth) " +
                 "VALUES (@fName, @lName, @dob)";
@@ -266,13 +266,13 @@ namespace FamilyTree
             ExecuteSql(sql, parameters);
         }
 
-        public List<Person> SelectAll(string where = null, params (string, string)[] parameters)
+        public List<Person> SelectAll(string filter = null, params (string, string)[] parameters)
         {
-            var sql = "SELECT * FROM Family";
+            var sql = "SELECT * FROM Family ";
             var dt = new DataTable();
-            if (where != null)
+            if (filter != null)
             {
-                sql += where;
+                sql += filter;
                 dt = GetDataTable(sql, parameters);
             }
             else
@@ -312,6 +312,52 @@ namespace FamilyTree
                 }
             }
             return dt;
+        }
+
+        public List<Person> GetSiblings(Person person)
+        {
+            var sql = "SELECT * FROM Family WHERE mother_id = @mId OR father_id = @fId";
+            var dt = GetDataTable(sql, ("@mId", person.MotherId.ToString()), 
+                ("@fId", person.FatherId.ToString()));
+            var siblings = new List<Person>();
+            if (dt.Rows.Count > 0)
+            {
+                foreach (DataRow row in dt.Rows)
+                {
+                    siblings.Add(GetPerson(row)); 
+                }
+            }
+            return siblings.Where(s => s.Id != person.Id).ToList();
+        }
+
+        public List<Person> GetParents(Person person)
+        {
+            var parents = new List<Person>();
+            var mother = SearchById(person.MotherId);
+            if (mother != null)
+            {
+                parents.Add(mother);
+            }
+            var father = SearchById(person.FatherId);
+            if (father != null)
+            {
+                parents.Add(father);
+            }
+            return parents;
+        }
+
+        public Person SearchById(int? id)
+        {
+            if (id.HasValue)
+            {
+                var sql = "SELECT * FROM Family WHERE id = @id";
+                var dt = GetDataTable(sql, ("@id", id.Value.ToString()));
+                if (dt.Rows.Count > 0)
+                {
+                    return GetPerson(dt.Rows[0]);
+                }
+            }            
+            return null;
         }
     }
 }
