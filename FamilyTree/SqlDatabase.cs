@@ -49,7 +49,7 @@ namespace FamilyTree
 
                     foreach (SqlParameter parameter in command.Parameters)
                     {
-                        if (parameter.Value.ToString() == "null")
+                        if (parameter.Value == null)
                         {
                             parameter.Value = DBNull.Value;
                         }
@@ -90,14 +90,11 @@ namespace FamilyTree
                     persons.Add(GetPerson(row));
                 }
 
-                if (persons.Count > 0)
+                DisplayPersons(persons);
+                var option = ChoosePerson(persons.Count);
+                if (option > 0)
                 {
-                    DisplayPersons(persons);
-                    var option = ChoosePerson(persons.Count);
-                    if (option > 0)
-                    {
-                        return persons[option - 1];
-                    }
+                    return persons[option - 1];
                 }
             }
 
@@ -109,21 +106,55 @@ namespace FamilyTree
                 var p = new Program();
                 return p.AddPerson();
             }
-
             return null;
         }
 
-        public void UpdatePerson(Person person)
+        public void Update(Person person)
         {
             var sql = "UPDATE Family SET first_name = @fName, " +
                 "last_name = @lName, date_of_birth = @dob, " +
                 "date_of_death = @dod, mother_id = @mId, father_id = @fId " +
                 "WHERE id = @id";
 
-            var dob = person.DateOfBirth.HasValue ? person.DateOfBirth.Value.ToString("d") : "null";
-            var dod = person.DateOfDeath.HasValue ? person.DateOfDeath.Value.ToString("d") : "null";
-            var mId = person.MotherId.HasValue ? person.MotherId.Value.ToString() : "null";
-            var fId = person.FatherId.HasValue ? person.FatherId.Value.ToString() : "null";
+            string dob;
+            if (person.DateOfBirth.HasValue)
+            {
+                dob = person.DateOfBirth.Value.ToShortDateString();
+            }
+            else
+            {
+                dob = null;
+            }
+
+            string dod;
+            if (person.DateOfDeath.HasValue)
+            {
+                dod = person.DateOfDeath.Value.ToShortDateString();
+            }
+            else
+            {
+                dod = null;
+            }
+
+            string mId;
+            if (person.MotherId.HasValue)
+            {
+                mId = person.MotherId.Value.ToString();
+            }
+            else
+            {
+                mId = null;
+            }
+
+            string fId;
+            if (person.FatherId.HasValue)
+            {
+                fId = person.FatherId.Value.ToString();
+            }
+            else
+            {
+                fId = null;
+            }
 
             var parameters = new (string, string)[]
             {
@@ -136,6 +167,12 @@ namespace FamilyTree
                 ("@fId", fId)
             };
             ExecuteSql(sql, parameters);
+        }
+
+        public void Delete(Person person)
+        {
+            var sql = "DELETE FROM Family WHERE id = @id";
+            ExecuteSql(sql, ("@id", person.Id.ToString()));
         }
 
         private int ChoosePerson(int count)
@@ -224,9 +261,34 @@ namespace FamilyTree
             {
                 ("@fName", person.FirstName),
                 ("@lName", person.LastName),
-                ("@dob", person.DateOfBirth.ToString())
+                ("@dob", person.DateOfBirth.Value.ToShortDateString())
             };
             ExecuteSql(sql, parameters);
+        }
+
+        public List<Person> SelectAll(string where = null, params (string, string)[] parameters)
+        {
+            var sql = "SELECT * FROM Family";
+            var dt = new DataTable();
+            if (where != null)
+            {
+                sql += where;
+                dt = GetDataTable(sql, parameters);
+            }
+            else
+            {
+                dt = GetDataTable(sql);
+            }
+
+            var persons = new List<Person>();
+            if (dt.Rows.Count > 0)
+            {
+                foreach (DataRow row in dt.Rows)
+                {
+                    persons.Add(GetPerson(row));
+                }
+            }
+            return persons;
         }
 
         private DataTable GetDataTable(string sql, params (string, string)[] parameters)
